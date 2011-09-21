@@ -238,19 +238,17 @@ static inline void bs_write_ue( bs_t *s, int val )
 
 static inline void bs_write_se( bs_t *s, int val )
 {
-    int size, tmp;
-    
+    int size;
     /* (val <= 0 ? -val*2+1 : val*2) */
-    tmp = val<<1;
+    int tmp = val<<1;
     if ( val <= 0 ) /* avoid deps on the condition */
-        tmp = 1 - tmp; 
-    val = tmp;
+        tmp = 1-tmp; 
 
     if( tmp >= 0x100 )
-        size = 16 + x264_ue_size_tab[tmp>>8];
+        size = 16+x264_ue_size_tab[tmp>>8];
     else
         size = x264_ue_size_tab[tmp];
-    bs_write( s, size, val );
+    bs_write( s, size, tmp );
 }
 
 static inline void bs_write_te( bs_t *s, int x, int val )
