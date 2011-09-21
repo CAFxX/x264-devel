@@ -280,12 +280,15 @@ static ALWAYS_INLINE int bs_size_ue_big( unsigned int val )
 
 static ALWAYS_INLINE int bs_size_se( int val )
 {
-    int tmp = 1 - val*2;
-    if( tmp < 0 ) tmp = val*2;
-    if( tmp < 256 )
-        return x264_ue_size_tab[tmp];
+    /* (val <= 0 ? -val*2+1 : val*2) */
+    int tmp = val<<1;
+    if ( val <= 0 ) /* avoid deps on the condition */
+        tmp = 1-tmp; 
+
+    if( tmp >= 0x100 )
+        return 16+x264_ue_size_tab[tmp>>8];
     else
-        return x264_ue_size_tab[tmp>>8]+16;
+        return x264_ue_size_tab[tmp];
 }
 
 static ALWAYS_INLINE int bs_size_te( int x, int val )
