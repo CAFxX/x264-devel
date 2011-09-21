@@ -219,6 +219,36 @@ static ALWAYS_INLINE int bs_value_se( int val ) {
     return tmp;
 }
 
+static ALWAYS_INLINE int bs_size_ue( unsigned int val )
+{
+    return x264_ue_size_tab[val+1];
+}
+
+static ALWAYS_INLINE int bs_size_ue_big( unsigned int val )
+{
+    if( val < 255 )
+        return x264_ue_size_tab[val+1];
+    else
+        return x264_ue_size_tab[(val+1)>>8] + 16;
+}
+
+static ALWAYS_INLINE int bs_size_se( int val )
+{
+    int tmp = bs_value_se( val );
+    if( tmp < 255 )
+        return x264_ue_size_tab[tmp];
+    else
+        return x264_ue_size_tab[tmp>>8] + 16;
+}
+
+static ALWAYS_INLINE int bs_size_te( int x, int val )
+{
+    if( x == 1 )
+        return 1;
+    else //if( x > 1 )
+        return x264_ue_size_tab[val+1];
+}
+
 static inline void bs_write_ue_big( bs_t *s, unsigned int val )
 {
     int size = 0;
@@ -261,36 +291,6 @@ static inline void bs_rbsp_trailing( bs_t *s )
 {
     bs_write1( s, 1 );
     bs_write( s, s->i_left&7, 0  );
-}
-
-static ALWAYS_INLINE int bs_size_ue( unsigned int val )
-{
-    return x264_ue_size_tab[val+1];
-}
-
-static ALWAYS_INLINE int bs_size_ue_big( unsigned int val )
-{
-    if( val < 255 )
-        return x264_ue_size_tab[val+1];
-    else
-        return x264_ue_size_tab[(val+1)>>8] + 16;
-}
-
-static ALWAYS_INLINE int bs_size_se( int val )
-{
-    int tmp = bs_value_se( val );
-    if( tmp < 255 )
-        return x264_ue_size_tab[tmp];
-    else
-        return x264_ue_size_tab[tmp>>8] + 16;
-}
-
-static ALWAYS_INLINE int bs_size_te( int x, int val )
-{
-    if( x == 1 )
-        return 1;
-    else //if( x > 1 )
-        return x264_ue_size_tab[val+1];
 }
 
 #endif
