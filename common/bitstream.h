@@ -211,6 +211,14 @@ static const uint8_t x264_ue_size_tab[256] =
     15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,
 };
 
+static ALWAYS_INLINE int bs_value_se( int val ) {
+    /* (val <= 0 ? -val*2+1 : val*2) */
+    int tmp = val<<1;
+    if ( val <= 0 ) /* avoid deps on the condition */
+        tmp = 1-tmp;
+    return tmp;
+}
+
 static inline void bs_write_ue_big( bs_t *s, unsigned int val )
 {
     int size = 0;
@@ -238,17 +246,7 @@ static inline void bs_write_ue( bs_t *s, int val )
 
 static inline void bs_write_se( bs_t *s, int val )
 {
-    int size;
-    /* (val <= 0 ? -val*2+1 : val*2) */
-    int tmp = val<<1;
-    if ( val <= 0 ) /* avoid deps on the condition */
-        tmp = 1-tmp; 
-
-    if( tmp >= 0x100 )
-        size = 16+x264_ue_size_tab[tmp>>8];
-    else
-        size = x264_ue_size_tab[tmp];
-    bs_write( s, size, tmp );
+    bs_write( s, bs_size_se( val ), bs_value_se( val ) );
 }
 
 static inline void bs_write_te( bs_t *s, int x, int val )
@@ -280,15 +278,11 @@ static ALWAYS_INLINE int bs_size_ue_big( unsigned int val )
 
 static ALWAYS_INLINE int bs_size_se( int val )
 {
-    /* (val <= 0 ? -val*2+1 : val*2) */
-    int tmp = val<<1;
-    if ( val <= 0 ) /* avoid deps on the condition */
-        tmp = 1-tmp; 
-
-    if( tmp >= 0x100 )
-        return 16+x264_ue_size_tab[tmp>>8];
-    else
+    int tmp = bs_value_se( val );
+    if( tmp < 255 )
         return x264_ue_size_tab[tmp];
+    else
+        return x264_ue_size_tab[tmp>>8] + 16;
 }
 
 static ALWAYS_INLINE int bs_size_te( int x, int val )
