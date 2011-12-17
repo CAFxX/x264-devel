@@ -3808,13 +3808,8 @@ HADAMARD_AC_SSE2
     pmaddwd   m7, m5, m6
     pmaddwd   m5, m5
     pmaddwd   m6, m6
-%if %1==0
-    SWAP       3,  5
-    SWAP       4,  7
-%else
-    paddd     m3, m5
-    paddd     m4, m7
-%endif
+    ACCUM  paddd, 3, 5, %1
+    ACCUM  paddd, 4, 7, %1
     paddd     m3, m6
 %endmacro
 
