@@ -264,13 +264,11 @@ uint32_t x264_cpu_detect( void )
 #endif
 
     check_target_cpu:
-#if SINGLE_CPU_SUPPORT
+#if ENFORCE_TARGET_CPU
     if (cpu != X264_TARGET_CPU) {
         x264_log( NULL, X264_LOG_ERROR, "x264 was compiled for a different CPU: aborting\n" ); 
         abort();
     }
-#else
-    cpu = 0;
 #endif
 
     return cpu;
