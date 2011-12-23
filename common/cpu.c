@@ -113,18 +113,18 @@ uint32_t x264_cpu_detect( void )
 
 #if !ARCH_X86_64
     if( !x264_cpu_cpuid_test() )
-        return 0;
+        goto check_target_cpu;
 #endif
 
     x264_cpu_cpuid( 0, &eax, vendor+0, vendor+2, vendor+1 );
     if( eax == 0 )
-        return 0;
+        goto check_target_cpu;
 
     x264_cpu_cpuid( 1, &eax, &ebx, &ecx, &edx );
     if( edx&0x00800000 )
         cpu |= X264_CPU_MMX;
     else
-        return 0;
+        goto check_target_cpu;
     if( edx&0x02000000 )
         cpu |= X264_CPU_MMX2|X264_CPU_SSE;
     if( edx&0x04000000 )
@@ -261,6 +261,16 @@ uint32_t x264_cpu_detect( void )
 
 #if BROKEN_STACK_ALIGNMENT
     cpu |= X264_CPU_STACK_MOD4;
+#endif
+
+    check_target_cpu:
+#if SINGLE_CPU_SUPPORT
+    if (cpu != X264_TARGET_CPU) {
+        x264_log( NULL, X264_LOG_ERROR, "x264 was compiled for a different CPU: aborting\n" ); 
+        abort();
+    }
+#else
+    cpu = 0;
 #endif
 
     return cpu;
